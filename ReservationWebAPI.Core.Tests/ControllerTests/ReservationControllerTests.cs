@@ -520,7 +520,7 @@ namespace ReservationWebAPI.Core.Tests
             var cancelRequest = new CancelReservationRequest
             {
                 Email = "test@example.com",
-                CellPhoneNumber = null
+                CellPhoneNumber = null!
             };
 
             _controller.ModelState.AddModelError("CellPhoneNumber", "CellPhoneNumber should not be null.");

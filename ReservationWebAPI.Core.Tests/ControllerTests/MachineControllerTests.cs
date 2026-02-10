@@ -43,7 +43,6 @@ namespace ReservationWebAPI.Core.Tests
             var okResult = result as OkObjectResult;
             Assert.That(okResult?.Value, Is.InstanceOf<IEnumerable<Models.Machine>>());
             var machinesResult = okResult?.Value as IEnumerable<Models.Machine>;
-
             Assert.That(machinesResult, Is.EqualTo(machinesData));
         }
 
@@ -65,7 +64,6 @@ namespace ReservationWebAPI.Core.Tests
         {
             // Act & Assert
             Assert.ThrowsAsync<ArgumentNullException>(async () => await _controller.LockMachineAsync(null));
-
         }
 
 
@@ -83,7 +81,6 @@ namespace ReservationWebAPI.Core.Tests
             Assert.Multiple(() =>
             {
                 Assert.That(okResult, Is.InstanceOf<OkObjectResult>());
-
                 Assert.That((bool)result.Value, Is.False);
             });
         }
@@ -157,7 +154,6 @@ namespace ReservationWebAPI.Core.Tests
             var controller = new MachineController(machineRepositoryMock.Object);
 
             // Act & Assert
-
             Assert.ThrowsAsync<ArgumentNullException>(async () => await _controller.UnlockMachineAsync(null));
             return Task.CompletedTask;
         }
@@ -177,7 +173,6 @@ namespace ReservationWebAPI.Core.Tests
             Assert.Multiple(() =>
             {
                 Assert.That(okResult, Is.InstanceOf<OkObjectResult>());
-
                 Assert.That((bool)result.Value, Is.False);
             });
         }

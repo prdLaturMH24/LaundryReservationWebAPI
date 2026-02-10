@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using ReservationWebAPI.Data;
-using ReservationWebAPI.Helpers;
 using ReservationWebAPI.Interfaces;
 using ReservationWebAPI.Proxies;
 using ReservationWebAPI.Repositories;
@@ -33,18 +32,17 @@ namespace ReservationWebAPI
             services.AddScoped<IReservationRepository, ReservationRepository>();
             services.AddScoped<IMachineRepository, MachineRepository>();
 
-            var serviceProvider = services.AddHttpClient().BuildServiceProvider();
-            var httpClient = serviceProvider.GetService<IHttpClientFactory>().CreateClient();
+            services.AddHttpClient();
+
+            services.AddSingleton<IMachineApiProxy, MachineApiProxy>(sp =>
+            {
+                var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+                var httpClient = httpClientFactory.CreateClient();
+                httpClient.BaseAddress = new Uri(appSettings?.BaseAddress!);
+                return new MachineApiProxy(httpClient);
+            });
 
             services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog());
-
-            _ = services.AddSingleton<IMachineApiProxy,MachineApiProxy>(
-                sp =>
-                {
-                    httpClient.BaseAddress = new Uri(appSettings?.BaseAddress);
-                    return new MachineApiProxy(httpClient);
-                }
-                );
 
             services.AddControllers();
             services.AddSwaggerGen(c =>
@@ -53,7 +51,7 @@ namespace ReservationWebAPI
                 {
                     Title = "Laundry Reservation API",
                     Version = "v1",
-                    Description = "Api to add reservation of Laundry Machines",
+                    Description = "API to add reservation of Laundry Machines",
                     Contact = new OpenApiContact
                     {
                         Name = "Developer Team",
@@ -68,11 +66,17 @@ namespace ReservationWebAPI
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
-            using (var scope = app.ApplicationServices.CreateScope())
+            try
             {
-                var services = scope.ServiceProvider;
-
-                SeedMachineData.Initialize(services);
+                using var scope = app.ApplicationServices.CreateScope();
+                var services = scope.ServiceProvider.GetRequiredService<LaundryDbContext>();
+                services.Database.Migrate();
+                SeedMachineData.Initialize(scope.ServiceProvider);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error while Migration: {ex.Message}");
+                throw;
             }
 
             if (env.IsDevelopment())
