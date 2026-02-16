@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   environment {
-    DOTNET_CLI_TELEMETRY_OPTOUT = '1',
+    DOTNET_CLI_TELEMETRY_OPTOUT = '1'
     SONAR_PROJECT_KEY = "LaundryReservationWebAPI"
   }
 
