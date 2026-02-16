@@ -2,7 +2,8 @@ pipeline {
   agent any
 
   environment {
-    DOTNET_CLI_TELEMETRY_OPTOUT = '1'
+    DOTNET_CLI_TELEMETRY_OPTOUT = '1',
+    SONAR_PROJECT_KEY = "LaundryReservationWebAPI"
   }
 
   stages {
@@ -10,6 +11,18 @@ pipeline {
       steps {
         echo 'Checking out source code from SCM...'
         checkout scm
+      }
+    }
+
+    stage('SonarQube Analysis') {
+      steps {
+          withSonarQubeEnv('SonarQube') {
+              script {
+                  bat "dotnet sonarscanner begin /k:${SONAR_PROJECT_KEY} /d:sonar.token=${SONAR_AUTH_TOKEN}"              
+                  bat "dotnet build"                  
+                  bat "dotnet sonarscanner end /d:sonar.token=${SONAR_AUTH_TOKEN}"
+              }
+          }
       }
     }
 
